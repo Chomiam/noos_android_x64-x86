@@ -26,9 +26,16 @@ done
 
 echo "==> [RootFS] Assemblage du système Noos Android x86_64 (Édition: $EDITION)..."
 
-BUILD_ROOT="$PROJECT_ROOT/build_out/rootfs_$EDITION"
 OUTPUT_DIR="$PROJECT_ROOT/out/system"
-mkdir -p "$OUTPUT_DIR" "$BUILD_ROOT"
+mkdir -p "$OUTPUT_DIR"
+
+if [ -f "$OUTPUT_DIR/system.sfs" ] && [ $(stat -c%s "$OUTPUT_DIR/system.sfs") -gt 100000000 ]; then
+    echo "✓ Image système AOSP complète existante et opérationnelle : $OUTPUT_DIR/system.sfs ($(ls -lh "$OUTPUT_DIR/system.sfs" | awk '{print $5}'))"
+    exit 0
+fi
+
+BUILD_ROOT="$PROJECT_ROOT/build_out/rootfs_$EDITION"
+mkdir -p "$BUILD_ROOT"
 rm -rf "${BUILD_ROOT:?}"/*
 
 # 1. Création de l'arborescence standard AOSP
