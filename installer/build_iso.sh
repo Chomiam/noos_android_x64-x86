@@ -44,10 +44,22 @@ fi
 mkdir -p "$ISO_DIR/boot/grub" "$ISO_DIR/EFI/BOOT"
 
 cp "$PROJECT_ROOT/out/kernel/kernel" "$ISO_DIR/kernel"
-cp "$PROJECT_ROOT/out/boot/initrd.img" "$ISO_DIR/initrd.img"
-cp "$PROJECT_ROOT/out/system/system.sfs" "$ISO_DIR/system.sfs"
-[ -f "$PROJECT_ROOT/out/system/system_tv.sfs" ] && cp "$PROJECT_ROOT/out/system/system_tv.sfs" "$ISO_DIR/system_tv.sfs"
-[ -f "$PROJECT_ROOT/out/system/system_desktop.sfs" ] && cp "$PROJECT_ROOT/out/system/system_desktop.sfs" "$ISO_DIR/system_desktop.sfs"
+
+if [ -f "$PROJECT_ROOT/build_out/cache/initrd.img" ]; then
+    cp "$PROJECT_ROOT/build_out/cache/initrd.img" "$ISO_DIR/initrd.img"
+else
+    cp "$PROJECT_ROOT/out/boot/initrd.img" "$ISO_DIR/initrd.img"
+fi
+
+if [ -f "$PROJECT_ROOT/build_out/cache/ramdisk.img" ]; then
+    cp "$PROJECT_ROOT/build_out/cache/ramdisk.img" "$ISO_DIR/ramdisk.img"
+fi
+
+if [ -f "$PROJECT_ROOT/out/system/system.sfs" ]; then
+    cp "$PROJECT_ROOT/out/system/system.sfs" "$ISO_DIR/system.sfs"
+elif [ -f "$PROJECT_ROOT/build_out/cache/system.sfs" ]; then
+    cp "$PROJECT_ROOT/build_out/cache/system.sfs" "$ISO_DIR/system.sfs"
+fi
 
 cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/boot/grub/grub.cfg"
 cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/EFI/BOOT/grub.cfg"
