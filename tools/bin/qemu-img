@@ -1,2 +1,9 @@
 #!/bin/bash
-exec flatpak run --command=qemu-img org.virt_manager.virt-manager "$@"
+if [ -x /usr/bin/qemu-img ]; then
+    exec /usr/bin/qemu-img "$@"
+elif which flatpak >/dev/null 2>&1 && flatpak list | grep -q "org.virt_manager.virt-manager"; then
+    exec flatpak run --command=qemu-img org.virt_manager.virt-manager "$@"
+else
+    echo "ERREUR: qemu-img introuvable (veuillez installer le paquet système : sudo apt install qemu-utils)" >&2
+    exit 127
+fi
