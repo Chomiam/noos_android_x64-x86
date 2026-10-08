@@ -1,0 +1,19 @@
+# Permissions des périphériques matériels Noos Android x86_64
+
+# DRM / KMS Graphics Acceleration (Intel Iris, AMD Radeon, VirtIO)
+/dev/dri/*                0666   root       graphics
+/dev/ion                  0664   system     graphics
+/dev/graphics/*           0660   system     graphics
+
+# Audio HAL & Sound Open Firmware
+/dev/snd/*                0660   system     audio
+
+# Binder IPC
+/dev/binder               0666   root       root
+/dev/hwbinder             0666   root       root
+/dev/vndbinder            0666   root       root
+
+# Input devices (TV Remotes, Gamepads, Mice, Keyboards)
+/dev/input/*              0660   root       input
+/dev/uinput               0660   system     bluetooth
+/dev/uhid                 0660   system     bluetooth

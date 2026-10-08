@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Permissions privilégiées pour la suite microG (remplaçant FOSS des Google Play Services) -->
+<permissions>
+    <privapp-permissions package="com.google.android.gms">
+        <permission name="android.permission.ACCESS_COARSE_LOCATION" />
+        <permission name="android.permission.ACCESS_FINE_LOCATION" />
+        <permission name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+        <permission name="android.permission.CHANGE_DEVICE_IDLE_TEMP_WHITELIST" />
+        <permission name="android.permission.MODIFY_PHONE_STATE" />
+        <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+        <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+        <permission name="android.permission.WRITE_GSERVICES" />
+        <permission name="android.permission.INTERACT_ACROSS_USERS" />
+        <permission name="android.permission.FAKE_PACKAGE_SIGNATURE" />
+    </privapp-permissions>
+
+    <privapp-permissions package="com.google.android.gsf">
+        <permission name="android.permission.ACCESS_CACHE_FILESYSTEM" />
+        <permission name="android.permission.WRITE_GSERVICES" />
+    </privapp-permissions>
+
+    <privapp-permissions package="com.android.vending">
+        <permission name="android.permission.FAKE_PACKAGE_SIGNATURE" />
+        <permission name="android.permission.INSTALL_PACKAGES" />
+        <permission name="android.permission.DELETE_PACKAGES" />
+    </privapp-permissions>
+</permissions>

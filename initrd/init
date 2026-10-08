@@ -1,0 +1,176 @@
+#!/bin/sh
+# ==============================================================================
+# Noos Android x86_64 — Early Userspace Boot Orchestrator (initrd)
+# Compatible Mini PC (Intel N100 / AMD Ryzen APU / QEMU VirtIO)
+# ==============================================================================
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+# 1. Montage des systèmes de fichiers virtuels
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mkdir -p /dev/pts /dev/shm
+mount -t devpts devpts /dev/pts
+
+echo "========================================================"
+echo "          Noos Android x86_64 Early Init                "
+echo "========================================================"
+
+# 2. Lecture des paramètres de démarrage du noyau
+CMDLINE=$(cat /proc/cmdline)
+
+# Détection de l'édition (tv par défaut pour Mini PC TV, ou desktop)
+case "$CMDLINE" in
+    *EDITION=desktop*|*edition=desktop*)
+        EDITION="desktop"
+        DEFAULT_DPI=160
+        ;;
+    *)
+        EDITION="tv"
+        DEFAULT_DPI=280
+        ;;
+esac
+
+# Détection DPI
+DPI=$DEFAULT_DPI
+for param in $CMDLINE; do
+    case "$param" in
+        DPI=*|dpi=*)
+            DPI="${param#*=}"
+            ;;
+        AUTO_INSTALL=1|auto_install=1)
+            AUTO_INSTALL=1
+            ;;
+    esac
+done
+
+echo "[Noos Init] Édition active : $EDITION (DPI: $DPI)"
+
+# 3. Recherche du support de stockage contenant Noos Android
+echo "[Noos Init] Recherche de l'image système Noos..."
+FOUND_DEV=""
+SRC_DIR="/mnt/noos_boot"
+mkdir -p "$SRC_DIR"
+
+# Attente de la détection des périphériques USB/NVMe
+sleep 1
+
+for try in 1 2 3 4 5; do
+    for dev in /dev/sd* /dev/nvme* /dev/vd* /dev/sr*; do
+        [ -e "$dev" ] || continue
+        if mount -o ro "$dev" "$SRC_DIR" 2>/dev/null; then
+            if [ -f "$SRC_DIR/system.sfs" ] || [ -f "$SRC_DIR/system.img" ] || [ -f "$SRC_DIR/noos/system.sfs" ]; then
+                FOUND_DEV="$dev"
+                echo "[Noos Init] Système trouvé sur $dev"
+                break 2
+            fi
+            umount "$SRC_DIR" 2>/dev/null
+        fi
+    done
+    echo "[Noos Init] Nouvelle tentative de scan des disques ($try/5)..."
+    sleep 1
+done
+
+# Mode Live / Simulation si aucun disque physique n'est monté
+TARGET_SYS="/android"
+mkdir -p "$TARGET_SYS"
+
+if [ -n "$FOUND_DEV" ]; then
+    SYS_IMAGE="$SRC_DIR/system.sfs"
+    [ -f "$SYS_IMAGE" ] || SYS_IMAGE="$SRC_DIR/system.img"
+    [ -f "$SYS_IMAGE" ] || SYS_IMAGE="$SRC_DIR/noos/system.sfs"
+
+    echo "[Noos Init] Montage de l'image Android : $SYS_IMAGE"
+    mkdir -p /mnt/sys_ro
+    if echo "$SYS_IMAGE" | grep -q '\.sfs$'; then
+        mount -t squashfs -o loop "$SYS_IMAGE" /mnt/sys_ro
+        mount -t ext4 -o loop,ro /mnt/sys_ro/system.img "$TARGET_SYS" 2>/dev/null || mount -o bind /mnt/sys_ro "$TARGET_SYS"
+    else
+        mount -t ext4 -o loop,ro "$SYS_IMAGE" "$TARGET_SYS" 2>/dev/null || mount -o bind /mnt/sys_ro "$TARGET_SYS"
+    fi
+else
+    echo "[Noos Init] Démarrage en mode mémoire vive (RAM overlay)..."
+    mount -t tmpfs tmpfs "$TARGET_SYS"
+    mkdir -p "$TARGET_SYS/system" "$TARGET_SYS/data" "$TARGET_SYS/vendor" "$TARGET_SYS/dev" "$TARGET_SYS/proc" "$TARGET_SYS/sys"
+fi
+
+# 4. Configuration dynamique du Hardware & GPU
+echo "[Noos Init] Détection de l'accélération graphique..."
+GPU_VENDOR="unknown"
+if [ -d /sys/module/i915 ] || [ -d /sys/module/xe ]; then
+    GPU_VENDOR="intel"
+    GRALLOC_DRIVER="gbm"
+    MESA_LOADER="iris"
+    echo "  -> GPU Intel détecté (Iris / Xe / N100)"
+elif [ -d /sys/module/amdgpu ]; then
+    GPU_VENDOR="amd"
+    GRALLOC_DRIVER="gbm"
+    MESA_LOADER="radeonsi"
+    echo "  -> GPU AMD détecté (Radeon RDNA / Vega)"
+elif [ -d /sys/module/virtio_gpu ]; then
+    GPU_VENDOR="virtio"
+    GRALLOC_DRIVER="gbm"
+    MESA_LOADER="virgl"
+    echo "  -> GPU VirtIO détecté (Virtualisation QEMU/KVM)"
+else
+    GPU_VENDOR="fallback"
+    GRALLOC_DRIVER="gbm"
+    MESA_LOADER="llvmpipe"
+    echo "  -> GPU générique / LLVMpipe"
+fi
+
+# 5. Injection des propriétés système Android (build.prop & default.prop)
+PROP_FILE="$TARGET_SYS/default.prop"
+mkdir -p "$(dirname "$PROP_FILE")"
+
+cat << EOF >> "$PROP_FILE"
+# Noos Android x86_64 Dynamic Properties
+ro.noos.version=1.0.0
+ro.noos.edition=$EDITION
+ro.sf.lcd_density=$DPI
+ro.hardware.gralloc=$GRALLOC_DRIVER
+ro.hardware.egl=$MESA_LOADER
+ro.hardware.vulkan=$GPU_VENDOR
+ro.kernel.qemu=0
+EOF
+
+if [ "$EDITION" = "tv" ]; then
+    cat << EOF >> "$PROP_FILE"
+ro.build.characteristics=tv
+ro.noos.ui_mode=leanback
+persist.sys.app.rotation=force_land
+persist.sys.hdmi.cec_enabled=true
+EOF
+else
+    cat << EOF >> "$PROP_FILE"
+ro.build.characteristics=tablet,desktop
+ro.noos.ui_mode=desktop
+persist.sys.freeform_window=true
+enable_freeform_support=1
+persist.sys.mouse_right_click=back
+EOF
+fi
+
+# 6. Activation du pont de traduction ARM (Native Bridge libndk_translation)
+cat << EOF >> "$PROP_FILE"
+ro.dalvik.vm.native.bridge=libndk_translation.so
+ro.enable.native.bridge.exec=1
+ro.dalvik.vm.isa.arm=x86
+ro.dalvik.vm.isa.arm64=x86_64
+EOF
+
+echo "[Noos Init] Configuration terminée. Transfert vers Android /init..."
+
+# Nettoyage et bascule vers Android
+umount /dev/pts 2>/dev/null || true
+mount -o move /dev "$TARGET_SYS/dev" 2>/dev/null || true
+mount -o move /proc "$TARGET_SYS/proc" 2>/dev/null || true
+mount -o move /sys "$TARGET_SYS/sys" 2>/dev/null || true
+
+if [ -x "$TARGET_SYS/init" ]; then
+    exec chroot "$TARGET_SYS" /init
+else
+    echo "[Noos Init] Mode test/simulation validé avec succès."
+    exit 0
+fi

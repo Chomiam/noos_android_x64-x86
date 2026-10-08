@@ -1,0 +1,22 @@
+# Microsoft Xbox Controller (X-Box 360 / Xbox One / Series X)
+key 304   BUTTON_A
+key 305   BUTTON_B
+key 307   BUTTON_X
+key 308   BUTTON_Y
+key 310   BUTTON_L1
+key 311   BUTTON_R1
+key 314   BACK
+key 315   BUTTON_START
+key 316   HOME
+key 317   BUTTON_THUMBL
+key 318   BUTTON_THUMBR
+
+# Axes analogiques et D-Pad
+axis 0x00 X
+axis 0x01 Y
+axis 0x02 Z
+axis 0x03 RX
+axis 0x04 RY
+axis 0x05 RZ
+axis 0x10 HAT_X
+axis 0x11 HAT_Y

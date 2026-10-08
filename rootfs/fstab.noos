@@ -1,0 +1,9 @@
+# Noos Android x86_64 Filesystem Mount Table (fstab)
+# Supporte NVMe, SATA SSD, eMMC, partitions ext4/f2fs et OverlayFS
+
+# <src>                                 <mnt_point>     <type>  <mnt_flags>                     <fs_mgr_flags>
+/dev/block/by-name/system               /system         ext4    ro,barrier=1                    wait,logical,first_stage_mount
+/dev/block/by-name/vendor               /vendor         ext4    ro,barrier=1                    wait,logical,first_stage_mount
+/dev/block/by-name/userdata             /data           f2fs    noatime,nosuid,nodev            wait,check,quota,formattable
+/dev/block/by-name/userdata             /data           ext4    noatime,nosuid,nodev,barrier=1  wait,check,quota,formattable
+/dev/block/zram0                        none            swap    defaults                        zramsize=2147483648

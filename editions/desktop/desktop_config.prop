@@ -1,0 +1,24 @@
+# ==============================================================================
+# Noos Android x86_64 — Profil Bureau (Mini PC pour usage ordinateur de bureau)
+# ==============================================================================
+ro.noos.edition=desktop
+ro.build.characteristics=tablet,desktop
+ro.noos.ui_mode=desktop
+
+# Densité d'affichage adaptée pour moniteur PC (1080p / 1440p / 4K)
+ro.sf.lcd_density=160
+
+# Activation du mode multi-fenêtres AOSP Freeform (Fenêtrage libre redimensionnable)
+persist.sys.freeform_window=true
+enable_freeform_support=1
+ro.config.desktop_mode=true
+ro.config.freeform_window_management=true
+
+# Intégration de la souris : Clic droit = Retour arrière, Molette = Scroll
+persist.sys.mouse_right_click=back
+persist.sys.mouse_middle_click=recents
+persist.sys.mouse_pointer_speed=0
+
+# Clavier physique & raccourcis standards (Alt+Tab, Super / Windows Key)
+persist.sys.hardware_keyboard=true
+ro.sys.keyboard_shortcuts=true

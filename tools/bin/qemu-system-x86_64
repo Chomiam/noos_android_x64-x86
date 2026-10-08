@@ -1,0 +1,2 @@
+#!/bin/bash
+exec flatpak run --command=qemu-system-x86_64 org.virt_manager.virt-manager "$@"

@@ -1,0 +1,98 @@
+name: Build & Continuous Tests - Noos Android x86_64
+
+on:
+  push:
+    branches:
+      - testing
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - testing
+
+jobs:
+  lint-and-validate:
+    name: Lint & Validation des configurations
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v4
+
+      - name: Vérification des scripts shell (shellcheck)
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck -e SC1091 -e SC2086 kernel/build_kernel.sh initrd/build_initrd.sh rootfs/build_rootfs.sh installer/build_iso.sh tests/*.sh
+
+      - name: Validation du defconfig Noyau 6.6 LTS
+        run: |
+          bash kernel/build_kernel.sh check
+
+  build-and-test:
+    name: Assemblage ISO & Batterie de tests QEMU
+    needs: lint-and-validate
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v4
+
+      - name: Installation des outils d'assemblage & QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            xorriso \
+            mtools \
+            squashfs-tools \
+            qemu-system-x86 \
+            ovmf \
+            zstd \
+            busybox-static
+
+      - name: Construction de l'image initrd
+        run: |
+          bash initrd/build_initrd.sh
+
+      - name: Assemblage des systèmes de fichiers (TV & Desktop)
+        run: |
+          bash rootfs/build_rootfs.sh --edition tv
+          bash rootfs/build_rootfs.sh --edition desktop
+
+      - name: Création de l'ISO hybride Noos Android x86_64
+        run: |
+          bash installer/build_iso.sh
+
+      - name: Exécution de la suite de tests continus
+        run: |
+          bash tests/run_tests.sh
+
+      - name: Archivage de l'ISO et du Checksum SHA256
+        uses: actions/upload-artifact@v4
+        with:
+          name: noos-android-x86_64-iso
+          path: |
+            out/iso/noos-android-x86_64.iso
+            out/iso/noos-android-x86_64.iso.sha256
+          retention-days: 14
+
+  release:
+    name: Publication de la Release (Tags)
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Récupération de l'ISO
+        uses: actions/download-artifact@v4
+        with:
+          name: noos-android-x86_64-iso
+          path: release_out/
+
+      - name: Création de la release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release_out/noos-android-x86_64.iso
+            release_out/noos-android-x86_64.iso.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

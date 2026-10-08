@@ -1,0 +1,30 @@
+# ==============================================================================
+# Noos Android x86_64 — Profil TV (Mini PC connecté à un téléviseur)
+# ==============================================================================
+ro.noos.edition=tv
+ro.build.characteristics=tv
+ro.noos.ui_mode=leanback
+
+# Densité d'affichage 10-foot UI optimisée pour TV 1080p et 4K
+ro.sf.lcd_density=280
+
+# Orientation forcée en paysage pour écran de télévision
+persist.sys.app.rotation=force_land
+
+# Gestion HDMI CEC (Contrôle via la télécommande de la télévision)
+persist.sys.hdmi.cec_enabled=true
+persist.sys.hdmi.keep_awake=true
+
+# Optimisations du moteur multimédia (Media3 / ExoPlayer / NoosTV)
+media.stagefright.enable-player=true
+media.stagefright.enable-http=true
+media.stagefright.enable-aac=true
+media.stagefright.enable-scan=true
+media.sf.hwaccel=1
+
+# Audio HDMI Passthrough & Stéréo TV
+audio.safemedia.bypass=true
+ro.audio.ignore_effects=true
+
+# Veille TV adaptée (pas de mise en veille brutale pendant la lecture vidéo)
+svc.power.stayon=3

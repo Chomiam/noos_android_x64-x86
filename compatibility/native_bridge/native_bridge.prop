@@ -1,0 +1,14 @@
+# Configuration Native Bridge pour l'exécution d'applications ARM / ARM64 sur x86_64
+# Supporte libndk_translation (Google) et Houdini (Intel)
+ro.dalvik.vm.native.bridge=libndk_translation.so
+ro.enable.native.bridge.exec=1
+
+# Déclaration des architectures supportées pour le gestionnaire de paquets Android (PackageManager)
+# Indique aux APKs ARM64 et ARMv7 qu'ils peuvent être installés et exécutés
+ro.product.cpu.abilist=x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi
+ro.product.cpu.abilist64=x86_64,arm64-v8a
+
+# Traduction dynamique des jeux d'instructions
+ro.dalvik.vm.isa.arm=x86
+ro.dalvik.vm.isa.arm64=x86_64

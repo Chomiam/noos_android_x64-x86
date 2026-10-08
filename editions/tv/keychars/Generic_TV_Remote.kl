@@ -1,0 +1,37 @@
+# Noos TV Remote / Air Mouse Key Layout
+# Mappe les télécommandes USB, RF 2.4Ghz et HDMI-CEC
+
+key 103   DPAD_UP
+key 108   DPAD_DOWN
+key 105   DPAD_LEFT
+key 106   DPAD_RIGHT
+key 352   DPAD_CENTER
+key 28    DPAD_CENTER
+key 1     BACK
+key 158   BACK
+key 102   HOME
+key 172   HOME
+key 139   MENU
+key 127   MENU
+key 115   VOLUME_UP
+key 114   VOLUME_DOWN
+key 113   VOLUME_MUTE
+key 164   MEDIA_PLAY_PAUSE
+key 163   MEDIA_NEXT
+key 165   MEDIA_PREVIOUS
+key 128   MEDIA_STOP
+key 167   MEDIA_RECORD
+key 365   GUIDE
+key 358   INFO
+key 11    0
+key 2     1
+key 3     2
+key 4     3
+key 5     4
+key 6     5
+key 7     6
+key 8     7
+key 9     8
+key 10    9
+key 116   POWER
+key 142   POWER

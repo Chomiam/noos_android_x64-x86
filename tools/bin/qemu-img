@@ -1,0 +1,2 @@
+#!/bin/bash
+exec flatpak run --command=qemu-img org.virt_manager.virt-manager "$@"

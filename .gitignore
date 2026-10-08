@@ -1,0 +1,15 @@
+# Git ignore for Noos Android x86_64
+tools/deb_root/
+*.deb
+*.iso
+*.img
+*.sfs
+*.qcow2
+*.vmdk
+build_out/
+out/
+tmp/
+*.log
+.DS_Store
+*.swp
+*~
