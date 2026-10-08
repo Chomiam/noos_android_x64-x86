@@ -30,9 +30,14 @@ if [ ! -f "$PROJECT_ROOT/out/kernel/kernel" ]; then
     bash "$PROJECT_ROOT/kernel/build_kernel.sh" fetch-prebuilt
 fi
 
-if [ ! -f "$PROJECT_ROOT/out/system/system.sfs" ]; then
-    echo "[ISO] system.sfs manquant, génération en cours..."
+if [ ! -f "$PROJECT_ROOT/out/system/system_tv.sfs" ]; then
+    echo "[ISO] system_tv.sfs manquant, génération du profil TV..."
     bash "$PROJECT_ROOT/rootfs/build_rootfs.sh" --edition tv
+fi
+
+if [ ! -f "$PROJECT_ROOT/out/system/system_desktop.sfs" ]; then
+    echo "[ISO] system_desktop.sfs manquant, génération du profil Bureau..."
+    bash "$PROJECT_ROOT/rootfs/build_rootfs.sh" --edition desktop
 fi
 
 # 2. Copie des fichiers système dans l'arborescence ISO

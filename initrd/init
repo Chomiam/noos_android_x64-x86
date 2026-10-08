@@ -90,9 +90,16 @@ TARGET_SYS="/android"
 mkdir -p "$TARGET_SYS"
 
 if [ -n "$FOUND_DEV" ]; then
-    SYS_IMAGE="$SRC_DIR/system.sfs"
-    [ -f "$SYS_IMAGE" ] || SYS_IMAGE="$SRC_DIR/system.img"
-    [ -f "$SYS_IMAGE" ] || SYS_IMAGE="$SRC_DIR/noos/system.sfs"
+    SYS_IMAGE=""
+    if [ -f "$SRC_DIR/system_${EDITION}.sfs" ]; then
+        SYS_IMAGE="$SRC_DIR/system_${EDITION}.sfs"
+    elif [ -f "$SRC_DIR/system.sfs" ]; then
+        SYS_IMAGE="$SRC_DIR/system.sfs"
+    elif [ -f "$SRC_DIR/system.img" ]; then
+        SYS_IMAGE="$SRC_DIR/system.img"
+    elif [ -f "$SRC_DIR/noos/system.sfs" ]; then
+        SYS_IMAGE="$SRC_DIR/noos/system.sfs"
+    fi
 
     echo "[Noos Init] Montage de l'image Android : $SYS_IMAGE"
     mkdir -p /mnt/sys_ro /mnt/sys_rw

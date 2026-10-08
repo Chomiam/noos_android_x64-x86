@@ -44,4 +44,11 @@ cat << 'EOF' > "$ETC_PERM_DIR/com.google.android.maps.xml"
 </permissions>
 EOF
 
+# 4. Intégration du magasin d'applications libres F-Droid
+if [ -f "$SCRIPT_DIR/prebuilts/F-Droid.apk" ]; then
+    mkdir -p "$PRIVAPP_DIR/FDroid"
+    cp "$SCRIPT_DIR/prebuilts/F-Droid.apk" "$PRIVAPP_DIR/FDroid/FDroid.apk"
+    echo "  -> F-Droid Store intégré dans /system/priv-app/FDroid"
+fi
+
 echo "✓ Fichiers de configuration et permissions microG déployés avec succès."

@@ -93,16 +93,30 @@ if [ "$EDITION" = "tv" ]; then
     cat "$PROJECT_ROOT/editions/tv/tv_config.prop" >> "$BUILD_ROOT/system/build.prop"
     cp "$PROJECT_ROOT/editions/tv/keychars/"*.kl "$BUILD_ROOT/system/usr/keylayout/"
     
-    # Intégration NoosTV APK
+    # Intégration NoosTV APK (Streaming IPTV/VOD)
     if [ -f "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" ]; then
         mkdir -p "$BUILD_ROOT/system/priv-app/NoosTV"
         cp "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" "$BUILD_ROOT/system/priv-app/NoosTV/NoosTV.apk"
         echo "  -> NoosTV intégré dans /system/priv-app/NoosTV"
     fi
+
+    # Intégration Projectivy Launcher (Interface TV 10-foot Leanback moderne)
+    if [ -f "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" ]; then
+        mkdir -p "$BUILD_ROOT/system/priv-app/ProjectivyLauncher"
+        cp "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" "$BUILD_ROOT/system/priv-app/ProjectivyLauncher/ProjectivyLauncher.apk"
+        echo "  -> Projectivy Launcher intégré dans /system/priv-app/ProjectivyLauncher"
+    fi
 else
     echo "==> [RootFS] Application du profil Bureau (Desktop)..."
     cat "$PROJECT_ROOT/editions/desktop/desktop_config.prop" >> "$BUILD_ROOT/system/build.prop"
     cp "$PROJECT_ROOT/editions/desktop/keychars/"*.kl "$BUILD_ROOT/system/usr/keylayout/"
+
+    # Intégration Taskbar (Barre des tâches & Menu Démarrer PC de bureau)
+    if [ -f "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" ]; then
+        mkdir -p "$BUILD_ROOT/system/priv-app/Taskbar"
+        cp "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" "$BUILD_ROOT/system/priv-app/Taskbar/Taskbar.apk"
+        echo "  -> Taskbar Desktop Launcher intégré dans /system/priv-app/Taskbar"
+    fi
 fi
 
 # 6. Création d'un exécutable d'initialisation Android factice / démonstration si pas de binaire compilé

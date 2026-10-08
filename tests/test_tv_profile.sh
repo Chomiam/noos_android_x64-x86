@@ -30,8 +30,13 @@ for key in "${REQUIRED_KEYS[@]}"; do
 done
 echo "✓ Mappage de la télécommande TV validé (D-Pad, Retour, Accueil, Média)."
 
-# 3. Vérification de la présence de NoosTV
+# 3. Vérification de la présence des applications TV (NoosTV & Projectivy Launcher)
 [ -f "$NOOSTV_APK" ] || { echo "FAIL: NoosTV.apk manquant dans $NOOSTV_APK" >&2; exit 1; }
 echo "✓ Application NoosTV intégrée avec succès ($(ls -lh "$NOOSTV_APK" | awk '{print $5}'))."
+
+PROJECTIVY_APK="$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk"
+if [ -f "$PROJECTIVY_APK" ]; then
+    echo "✓ Projectivy Launcher intégré avec succès ($(ls -lh "$PROJECTIVY_APK" | awk '{print $5}'))."
+fi
 
 echo "==> [Test TV] SUCCÈS : Tous les tests du profil TV ont réussi."

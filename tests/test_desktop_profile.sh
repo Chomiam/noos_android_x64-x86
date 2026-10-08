@@ -27,4 +27,10 @@ grep -q "ALT_LEFT" "$KEYBOARD_KL" || { echo "FAIL: Touche Alt non assignée" >&2
 grep -q "TAB" "$KEYBOARD_KL" || { echo "FAIL: Touche Tab non assignée" >&2; exit 1; }
 echo "✓ Mappage du clavier physique validé (Raccourcis Alt+Tab, Super / Menu)."
 
+# 3. Vérification du lanceur de bureau Taskbar
+TASKBAR_APK="$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk"
+if [ -f "$TASKBAR_APK" ]; then
+    echo "✓ Taskbar Desktop Launcher présent ($(ls -lh "$TASKBAR_APK" | awk '{print $5}'))."
+fi
+
 echo "==> [Test Bureau] SUCCÈS : Tous les tests du profil Bureau ont réussi."
