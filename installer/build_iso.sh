@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Génération de l'image ISO hybride UEFI/BIOS de Noos Android x86_64
-# Compatible Mini PC (Intel N100 / AMD Ryzen APU / QEMU VirtIO)
+# Compatible Mini PC (Intel N100 / AMD Ryzen APU / QEMU KVM Virt-Manager)
 # ==============================================================================
 set -euo pipefail
 
@@ -45,34 +45,48 @@ cp "$PROJECT_ROOT/out/system/system.sfs" "$ISO_DIR/system.sfs"
 [ -f "$PROJECT_ROOT/out/system/system_desktop.sfs" ] && cp "$PROJECT_ROOT/out/system/system_desktop.sfs" "$ISO_DIR/system_desktop.sfs"
 
 cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/boot/grub/grub.cfg"
+cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/EFI/BOOT/grub.cfg"
 
-# 3. Création de la partition d'amorçage UEFI efi.img
+# 3. Création de la partition d'amorçage UEFI efi.img (FAT16 conforme UEFI)
 echo "==> [ISO] Création de la partition d'amorçage UEFI (efi.img)..."
 EFI_IMG="$ISO_DIR/boot/grub/efi.img"
 rm -f "$EFI_IMG"
-dd if=/dev/zero of="$EFI_IMG" bs=1M count=4 status=none
-mformat -i "$EFI_IMG" -F ::
+dd if=/dev/zero of="$EFI_IMG" bs=1M count=16 status=none
+/usr/sbin/mkfs.vfat -n "NOOS_EFI" "$EFI_IMG" >/dev/null
+
 mmd -i "$EFI_IMG" ::/EFI
 mmd -i "$EFI_IMG" ::/EFI/BOOT
+mmd -i "$EFI_IMG" ::/boot
+mmd -i "$EFI_IMG" ::/boot/grub
 
 GRUB_EFI_SRC="$PROJECT_ROOT/tools/deb_root/usr/lib/grub/x86_64-efi/monolithic/grubx64.efi"
 if [ -f "$GRUB_EFI_SRC" ]; then
-    mcopy -i "$EFI_IMG" "$GRUB_EFI_SRC" ::/EFI/BOOT/bootx64.efi
+    # Copie du binaire EFI
+    mcopy -o -i "$EFI_IMG" "$GRUB_EFI_SRC" ::/EFI/BOOT/BOOTX64.EFI
+    cp "$GRUB_EFI_SRC" "$ISO_DIR/EFI/BOOT/BOOTX64.EFI"
     cp "$GRUB_EFI_SRC" "$ISO_DIR/EFI/BOOT/bootx64.efi"
+
+    # Copie de la configuration GRUB dans le disque EFI
+    mcopy -o -i "$EFI_IMG" "$PROJECT_ROOT/installer/grub/grub.cfg" ::/EFI/BOOT/grub.cfg
+    mcopy -o -i "$EFI_IMG" "$PROJECT_ROOT/installer/grub/grub.cfg" ::/boot/grub/grub.cfg
 fi
 
 # 4. Assemblage final avec xorriso
 echo "==> [ISO] Création de l'ISO hybride avec xorriso..."
+rm -f "$OUTPUT_ISO"
 xorriso -as mkisofs \
     -iso-level 3 \
     -full-iso9660-filenames \
     -volid "NOOS_ANDROID" \
-    -eltorito-alt-boot \
-    -e "boot/grub/efi.img" \
+    --efi-boot "boot/grub/efi.img" \
     -no-emul-boot \
     -isohybrid-gpt-basdat \
     -output "$OUTPUT_ISO" \
     "$ISO_DIR" 2>&1 | tail -n 15
+
+# Droits de lecture pour les démons système tels que libvirt
+chmod 664 "$OUTPUT_ISO" 2>/dev/null || true
+chmod a+r "$OUTPUT_ISO" 2>/dev/null || true
 
 # 5. Calcul de l'empreinte SHA256
 sha256sum "$OUTPUT_ISO" > "$OUTPUT_ISO.sha256"
