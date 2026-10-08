@@ -20,7 +20,7 @@ timeout 5s "$QEMU_BIN" \
     -enable-kvm \
     -m 1024 \
     -smp 2 \
-    -bios /app/lib/extensions/Qemu/share/qemu/edk2-x86_64-code.fd \
+    -bios "${OVMF_PATH:-/usr/share/OVMF/OVMF_CODE_4M.fd}" \
     -cdrom "$ISO_PATH" \
     -boot d \
     -display none \

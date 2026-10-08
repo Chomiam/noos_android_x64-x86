@@ -32,11 +32,47 @@ mkdir -p "$OUTPUT_DIR" "$BUILD_ROOT"
 rm -rf "${BUILD_ROOT:?}"/*
 
 # 1. Création de l'arborescence standard AOSP
-mkdir -p "$BUILD_ROOT/system/bin" "$BUILD_ROOT/system/lib64" "$BUILD_ROOT/system/lib"
+mkdir -p "$BUILD_ROOT/bin" "$BUILD_ROOT/sbin" "$BUILD_ROOT/system/bin" "$BUILD_ROOT/system/xbin" "$BUILD_ROOT/system/lib64" "$BUILD_ROOT/system/lib"
 mkdir -p "$BUILD_ROOT/system/etc/permissions" "$BUILD_ROOT/system/etc/init" "$BUILD_ROOT/system/framework"
 mkdir -p "$BUILD_ROOT/system/app" "$BUILD_ROOT/system/priv-app"
 mkdir -p "$BUILD_ROOT/system/usr/keylayout"
 mkdir -p "$BUILD_ROOT/vendor" "$BUILD_ROOT/data" "$BUILD_ROOT/dev" "$BUILD_ROOT/proc" "$BUILD_ROOT/sys"
+
+# Installation du shell de base & commandes système
+if [ -f "/usr/bin/busybox" ]; then
+    cp "/usr/bin/busybox" "$BUILD_ROOT/bin/busybox"
+    chmod +x "$BUILD_ROOT/bin/busybox"
+    cp "/usr/bin/busybox" "$BUILD_ROOT/system/bin/busybox"
+    chmod +x "$BUILD_ROOT/system/bin/busybox"
+    for applet in $("$BUILD_ROOT/bin/busybox" --list); do
+        [ "$applet" = "busybox" ] && continue
+        ln -sf "busybox" "$BUILD_ROOT/bin/$applet"
+        ln -sf "busybox" "$BUILD_ROOT/system/bin/$applet"
+    done
+fi
+
+# Commandes de base Android setprop / getprop
+cat << 'EOF' > "$BUILD_ROOT/system/bin/setprop"
+#!/bin/sh
+PROP="$1"
+VAL="$2"
+if [ -n "$PROP" ]; then
+    echo "${PROP}=${VAL}" >> /default.prop
+fi
+EOF
+chmod +x "$BUILD_ROOT/system/bin/setprop"
+
+cat << 'EOF' > "$BUILD_ROOT/system/bin/getprop"
+#!/bin/sh
+PROP="$1"
+if [ -z "$PROP" ]; then
+    cat /default.prop 2>/dev/null
+    cat /system/build.prop 2>/dev/null
+else
+    grep -E "^${PROP}=" /default.prop /system/build.prop 2>/dev/null | tail -n 1 | cut -d '=' -f 2-
+fi
+EOF
+chmod +x "$BUILD_ROOT/system/bin/getprop"
 
 # 2. Configuration Init & Fstab
 cp "$SCRIPT_DIR/fstab.noos" "$BUILD_ROOT/system/etc/fstab.noos"

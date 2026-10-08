@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x /usr/bin/flex ]; then
+    exec /usr/bin/flex "$@"
+elif [ -x "$SCRIPT_DIR/../deb_root/usr/bin/flex" ]; then
+    exec "$SCRIPT_DIR/../deb_root/usr/bin/flex" "$@"
+else
+    echo "ERREUR: flex introuvable (sudo apt install flex)" >&2
+    exit 127
+fi

@@ -7,7 +7,7 @@ Le projet originel **Android-x86** (`android-x86.org`) s'est arrêté à Android
 * L'exécution des applications Android fournies uniquement en binaire natif ARM64 (`arm64-v8a`) sans architecture x86_64 native.
 * L'usage sur écran de télévision moderne ou sur poste de travail avec multi-fenêtrage.
 
-**Noos Android x86_64** modernise de fond en comble cette distribution en fournissant une plateforme modulaire basée sur les technologies AOSP modernes, le noyau Linux 6.6 LTS, Mesa 24+, la traduction ARM transparente et les services Google FOSS.
+**Noos Android x86_64** modernise de fond en comble cette distribution en fournissant une plateforme modulaire basée sur les technologies AOSP modernes, le noyau Linux 6.12 LTS (avec support 6.18 LTS), Mesa 24+, la traduction ARM transparente (binfmt_misc / libndk_translation) et les services Google FOSS.
 
 ---
 
@@ -22,7 +22,7 @@ Le projet originel **Android-x86** (`android-x86.org`) s'est arrêté à Android
 |   [TV Edition] Leanback 10-foot UI, D-Pad/CEC, NoosTV, Lecteur Media3    |
 |   [Desktop Edition] Multi-fenêtrage Freeform, Barre des tâches, Souris   |
 +--------------------------------------------------------------------------+
-|                  COUCHE DE SERVICES GOOGLE FOSS & COMPAT               |
+|                  COUCHE DE SERVICES GOOGLE FOSS & COMPAT                 |
 |   microG Suite (GmsCore, GsfProxy, FakeStore) | Signature Spoofing       |
 |   Native Bridge : libndk_translation / Houdini (ARM64 -> x86_64)         |
 +--------------------------------------------------------------------------+
@@ -33,8 +33,8 @@ Le projet originel **Android-x86** (`android-x86.org`) s'est arrêté à Android
 |   Mesa 24+ (Iris, RadeonSI, VirGL) | DRM Gralloc (GBM) | DRM HWComposer  |
 |   ALSA & Sound Open Firmware (SOF) | BlueZ / Linux Wi-Fi mac80211        |
 +--------------------------------------------------------------------------+
-|                       NOYAU LINUX 6.6 LTS & PILOTES                      |
-|   BinderFS, MemFD, DRM/KMS (i915/xe/amdgpu), SOF Audio, XHCI, NVMe       |
+|                     NOYAU LINUX 6.12 LTS & PILOTES                       |
+|   BinderFS, MemFD, PSI, DMA-BUF Heaps, binfmt_misc, DRM/KMS, SOF Audio   |
 +--------------------------------------------------------------------------+
 |                    CHARGEUR D'AMORÇAGE HYBRIDE (GRUB 2)                  |
 |   UEFI 64-bit (x86_64-efi) + Legacy BIOS (i386-pc) | Partition GPT/MBR   |

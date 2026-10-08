@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x /usr/bin/m4 ]; then
+    exec /usr/bin/m4 "$@"
+elif [ -x "$SCRIPT_DIR/../deb_root/usr/bin/m4" ]; then
+    exec "$SCRIPT_DIR/../deb_root/usr/bin/m4" "$@"
+else
+    echo "ERREUR: m4 introuvable (sudo apt install m4)" >&2
+    exit 127
+fi

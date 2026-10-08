@@ -13,6 +13,19 @@ mount -t devtmpfs devtmpfs /dev
 mkdir -p /dev/pts /dev/shm
 mount -t devpts devpts /dev/pts
 
+# Redirection vers la console graphique active (/dev/tty0)
+if [ -e /dev/tty0 ]; then
+    exec < /dev/tty0 > /dev/tty0 2>&1
+elif [ -e /dev/console ]; then
+    exec < /dev/console > /dev/console 2>&1
+fi
+
+# Chargement des modules noyau essentiels (systèmes de fichiers & GPU)
+for mod in /lib/modules/*.ko; do
+    [ -f "$mod" ] || continue
+    insmod "$mod" 2>/dev/null || true
+done
+
 echo "========================================================"
 echo "          Noos Android x86_64 Early Init                "
 echo "========================================================"
@@ -57,7 +70,7 @@ mkdir -p "$SRC_DIR"
 sleep 1
 
 for try in 1 2 3 4 5; do
-    for dev in /dev/sd* /dev/nvme* /dev/vd* /dev/sr*; do
+    for dev in /dev/sr* /dev/hd* /dev/sd* /dev/nvme* /dev/vd*; do
         [ -e "$dev" ] || continue
         if mount -o ro "$dev" "$SRC_DIR" 2>/dev/null; then
             if [ -f "$SRC_DIR/system.sfs" ] || [ -f "$SRC_DIR/system.img" ] || [ -f "$SRC_DIR/noos/system.sfs" ]; then
@@ -82,12 +95,26 @@ if [ -n "$FOUND_DEV" ]; then
     [ -f "$SYS_IMAGE" ] || SYS_IMAGE="$SRC_DIR/noos/system.sfs"
 
     echo "[Noos Init] Montage de l'image Android : $SYS_IMAGE"
-    mkdir -p /mnt/sys_ro
+    mkdir -p /mnt/sys_ro /mnt/sys_rw
     if echo "$SYS_IMAGE" | grep -q '\.sfs$'; then
         mount -t squashfs -o loop "$SYS_IMAGE" /mnt/sys_ro
-        mount -t ext4 -o loop,ro /mnt/sys_ro/system.img "$TARGET_SYS" 2>/dev/null || mount -o bind /mnt/sys_ro "$TARGET_SYS"
+        LOWER_DIR="/mnt/sys_ro"
+        if [ -f /mnt/sys_ro/system.img ]; then
+            mkdir -p /mnt/img_ro
+            mount -t ext4 -o loop,ro /mnt/sys_ro/system.img /mnt/img_ro 2>/dev/null && LOWER_DIR="/mnt/img_ro"
+        fi
     else
-        mount -t ext4 -o loop,ro "$SYS_IMAGE" "$TARGET_SYS" 2>/dev/null || mount -o bind /mnt/sys_ro "$TARGET_SYS"
+        mount -t ext4 -o loop,ro "$SYS_IMAGE" /mnt/sys_ro
+        LOWER_DIR="/mnt/sys_ro"
+    fi
+
+    # Montage OverlayFS en RAM pour permettre les écritures système dynamiques
+    mount -t tmpfs tmpfs /mnt/sys_rw
+    mkdir -p /mnt/sys_rw/upper /mnt/sys_rw/work
+    if mount -t overlay overlay -o lowerdir="$LOWER_DIR",upperdir=/mnt/sys_rw/upper,workdir=/mnt/sys_rw/work "$TARGET_SYS" 2>/dev/null; then
+        echo "[Noos Init] Système monté avec succès en OverlayFS (RAM RW)"
+    else
+        mount -o bind "$LOWER_DIR" "$TARGET_SYS"
     fi
 else
     echo "[Noos Init] Démarrage en mode mémoire vive (RAM overlay)..."
@@ -171,6 +198,7 @@ mount -o move /sys "$TARGET_SYS/sys" 2>/dev/null || true
 if [ -x "$TARGET_SYS/init" ]; then
     exec chroot "$TARGET_SYS" /init
 else
-    echo "[Noos Init] Mode test/simulation validé avec succès."
-    exit 0
+    echo "[Noos Init] Système Noos Android monté et prêt."
+    echo "[Noos Init] Lancement du shell interactif de secours / test..."
+    exec sh
 fi

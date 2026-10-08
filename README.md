@@ -13,8 +13,8 @@
 Le projet originel Android-x86 ayant été abandonné sur une base Android 9.0 (Pie) avec un noyau 4.19, il est devenu incapable de fonctionner sur le matériel informatique récent ou de lancer les applications Android actuelles.
 
 **Noos Android x86_64** remet au goût du jour cette version en apportant :
-1. **Support du matériel récent (Mini PC modernes)** : Noyau Linux 6.6 LTS, pilotes graphiques Mesa 24+ (Intel Iris/Xe N95/N100, AMD Radeon RDNA2/RDNA3, VirtIO GPU), audio Sound Open Firmware (SOF), réseaux 2.5GbE (Intel i225/i226, Realtek RTL8125) et Wi-Fi 6E/7 (Intel AX210/BE200).
-2. **Compatibilité maximale avec les applications Android actuelles** : Intégration du pont de traduction **Native Bridge (`libndk_translation`)** permettant d'exécuter de manière transparente les applications compilées pour ARM64 (`arm64-v8a`) et ARMv7 sur architecture x86_64.
+1. **Support du matériel récent (Mini PC modernes)** : Noyau Linux 6.12 LTS (avec support 6.18 LTS), pilotes graphiques Mesa 24+ (Intel Iris/Xe N95/N100, AMD Radeon RDNA2/RDNA3, VirtIO GPU), audio Sound Open Firmware (SOF), réseaux 2.5GbE (Intel i225/i226, Realtek RTL8125) et Wi-Fi 6E/7 (Intel AX210/BE200).
+2. **Compatibilité maximale avec les applications Android actuelles** : Intégration du pont de traduction **Native Bridge (`libndk_translation`)** avec activation noyau `binfmt_misc`, `binderfs` et `memfd_create` permettant d'exécuter de manière transparente les applications compilées pour ARM64 (`arm64-v8a`) et ARMv7 sur architecture x86_64.
 3. **Services Google Alternatifs Open Source (microG)** : Suite microG complète (`GmsCore`, `GsfProxy`, `FakeStore`), prise en charge du **Signature Spoofing**, et intégration des magasins d'applications libres **Aurora Store** et **F-Droid**.
 4. **Deux Éditions Dédiées** :
    * 📺 **Édition TV (Salon & Téléviseur)** : Interface Leanback 10-foot UI, prise en charge native des télécommandes infrarouge / RF 2.4G / HDMI-CEC, manettes Xbox/PS5, et intégration préinstallée de l'application **NoosTV** pour le streaming IPTV/VOD.
@@ -26,10 +26,10 @@ Le projet originel Android-x86 ayant été abandonné sur une base Android 9.0 (
 
 ```text
 noos_android_x64-x86/
-├── kernel/                    # Configuration noyau 6.6 LTS & scripts de build
-│   ├── config-6.6-noos-x86_64 # Defconfig optimisé Mini PC
-│   ├── build_kernel.sh        # Script de validation et compilation
-│   └── cmdline.cfg            # Ligne de commande de démarrage par profil
+├── kernel/                     # Configuration noyau 6.12 LTS & scripts de build
+│   ├── config-6.12-noos-x86_64 # Defconfig optimisé Mini PC & Android IPC
+│   ├── build_kernel.sh         # Script de validation et compilation
+│   └── cmdline.cfg             # Ligne de commande de démarrage par profil
 ├── initrd/                    # Ramdisk précoce de détection et montage
 │   ├── init                   # Script d'orchestration précoce
 │   └── build_initrd.sh        # Générateur d'initrd.img
@@ -90,7 +90,7 @@ make run-desktop
 ## 🧪 Amélioration Continue & Tests
 
 Le script `tests/run_tests.sh` valide automatiquement :
-1. ✅ La complétude du defconfig noyau 6.6 LTS (BinderFS, MemFD, DRM Intel/AMD, SOF, joystick).
+1. ✅ La complétude du defconfig noyau Linux 6.12 LTS (BinderFS, MemFD, PSI, DMA-BUF heaps, binfmt_misc, DRM Intel/AMD, SOF, joystick).
 2. ✅ Le profil TV (densité DPI 280, HDMI-CEC, mappage télécommande, présence de NoosTV.apk).
 3. ✅ Le profil Bureau (multi-fenêtrage Freeform, raccourcis clavier Alt+Tab/Super, souris).
 4. ✅ La configuration du pont de traduction ARM64 (Native Bridge).

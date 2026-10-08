@@ -15,7 +15,7 @@ echo "Hôte : $(uname -srm)"
 echo ""
 
 TEST_SUITES=(
-    "Configuration Noyau 6.6 LTS:$PROJECT_ROOT/kernel/build_kernel.sh check"
+    "Configuration Noyau Linux 6.12 LTS:$PROJECT_ROOT/kernel/build_kernel.sh check"
     "Profil Noos Android TV Edition:$PROJECT_ROOT/tests/test_tv_profile.sh"
     "Profil Noos Android Desktop Edition:$PROJECT_ROOT/tests/test_desktop_profile.sh"
     "Traduction ARM (Native Bridge):$PROJECT_ROOT/tests/test_arm_nativebridge.sh"

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x /usr/bin/bison ]; then
+    exec /usr/bin/bison "$@"
+elif [ -x "$SCRIPT_DIR/../deb_root/usr/bin/bison" ]; then
+    export BISON_PKGDATADIR="$SCRIPT_DIR/../deb_root/usr/share/bison"
+    exec "$SCRIPT_DIR/../deb_root/usr/bin/bison" "$@"
+else
+    echo "ERREUR: bison introuvable (sudo apt install bison)" >&2
+    exit 127
+fi
