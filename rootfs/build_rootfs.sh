@@ -99,6 +99,8 @@ if [ "$EDITION" = "tv" ]; then
     echo "==> [RootFS] Application du profil TV..."
     cat "$PROJECT_ROOT/editions/tv/tv_config.prop" >> "$BUILD_ROOT/system/build.prop"
     cp "$PROJECT_ROOT/editions/tv/keychars/"*.kl "$BUILD_ROOT/system/usr/keylayout/"
+    mkdir -p "$BUILD_ROOT/system/usr/idc"
+    [ -d "$PROJECT_ROOT/editions/tv/idc" ] && cp "$PROJECT_ROOT/editions/tv/idc/"*.idc "$BUILD_ROOT/system/usr/idc/"
     
     # Intégration NoosTV APK (Streaming IPTV/VOD)
     if [ -f "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" ]; then
@@ -117,6 +119,8 @@ else
     echo "==> [RootFS] Application du profil Bureau (Desktop)..."
     cat "$PROJECT_ROOT/editions/desktop/desktop_config.prop" >> "$BUILD_ROOT/system/build.prop"
     cp "$PROJECT_ROOT/editions/desktop/keychars/"*.kl "$BUILD_ROOT/system/usr/keylayout/"
+    mkdir -p "$BUILD_ROOT/system/usr/idc"
+    [ -d "$PROJECT_ROOT/editions/desktop/idc" ] && cp "$PROJECT_ROOT/editions/desktop/idc/"*.idc "$BUILD_ROOT/system/usr/idc/"
 
     # Intégration Taskbar (Barre des tâches & Menu Démarrer PC de bureau)
     if [ -f "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" ]; then
