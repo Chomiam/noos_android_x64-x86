@@ -42,7 +42,15 @@ rm -rf "${BUILD_ROOT:?}"/*
 mkdir -p "$BUILD_ROOT/bin" "$BUILD_ROOT/sbin" "$BUILD_ROOT/system/bin" "$BUILD_ROOT/system/xbin" "$BUILD_ROOT/system/lib64" "$BUILD_ROOT/system/lib"
 mkdir -p "$BUILD_ROOT/system/etc/permissions" "$BUILD_ROOT/system/etc/init" "$BUILD_ROOT/system/framework"
 mkdir -p "$BUILD_ROOT/system/app" "$BUILD_ROOT/system/priv-app"
-mkdir -p "$BUILD_ROOT/system/usr/keylayout"
+mkdir -p "$BUILD_ROOT/system/usr/keylayout" "$BUILD_ROOT/system/usr/keychars"
+if [ -f "$PROJECT_ROOT/rootfs/azerty.kl" ]; then
+    cp "$PROJECT_ROOT/rootfs/azerty.kl" "$BUILD_ROOT/system/usr/keylayout/Generic.kl"
+    cp "$PROJECT_ROOT/rootfs/azerty.kl" "$BUILD_ROOT/system/usr/keylayout/Vendor_0001_Product_0001.kl"
+    cp "$PROJECT_ROOT/rootfs/azerty.kl" "$BUILD_ROOT/system/usr/keylayout/AT_Translated_Set_2_keyboard.kl"
+fi
+if [ -f "$PROJECT_ROOT/rootfs/azerty_full.kcm" ]; then
+    cp "$PROJECT_ROOT/rootfs/azerty_full.kcm" "$BUILD_ROOT/system/usr/keychars/Generic.kcm"
+fi
 mkdir -p "$BUILD_ROOT/vendor" "$BUILD_ROOT/data" "$BUILD_ROOT/dev" "$BUILD_ROOT/proc" "$BUILD_ROOT/sys"
 
 # Installation du shell de base & commandes système
@@ -108,6 +116,8 @@ if [ "$EDITION" = "tv" ]; then
     echo "==> [RootFS] Application du profil TV..."
     cat "$PROJECT_ROOT/editions/tv/tv_config.prop" >> "$BUILD_ROOT/system/build.prop"
     cp "$PROJECT_ROOT/editions/tv/keychars/"*.kl "$BUILD_ROOT/system/usr/keylayout/"
+    mkdir -p "$BUILD_ROOT/system/usr/keychars"
+    [ -d "$PROJECT_ROOT/editions/tv/keychars" ] && cp "$PROJECT_ROOT/editions/tv/keychars/"*.kcm "$BUILD_ROOT/system/usr/keychars/" 2>/dev/null || true
     mkdir -p "$BUILD_ROOT/system/usr/idc"
     [ -d "$PROJECT_ROOT/editions/tv/idc" ] && cp "$PROJECT_ROOT/editions/tv/idc/"*.idc "$BUILD_ROOT/system/usr/idc/"
     
@@ -135,6 +145,8 @@ else
     echo "==> [RootFS] Application du profil Bureau (Desktop)..."
     cat "$PROJECT_ROOT/editions/desktop/desktop_config.prop" >> "$BUILD_ROOT/system/build.prop"
     cp "$PROJECT_ROOT/editions/desktop/keychars/"*.kl "$BUILD_ROOT/system/usr/keylayout/"
+    mkdir -p "$BUILD_ROOT/system/usr/keychars"
+    [ -d "$PROJECT_ROOT/editions/desktop/keychars" ] && cp "$PROJECT_ROOT/editions/desktop/keychars/"*.kcm "$BUILD_ROOT/system/usr/keychars/" 2>/dev/null || true
     mkdir -p "$BUILD_ROOT/system/usr/idc"
     [ -d "$PROJECT_ROOT/editions/desktop/idc" ] && cp "$PROJECT_ROOT/editions/desktop/idc/"*.idc "$BUILD_ROOT/system/usr/idc/"
 

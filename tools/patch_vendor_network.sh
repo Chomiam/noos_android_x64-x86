@@ -45,6 +45,9 @@ debugfs -w -R "rm /etc/init/noos_net.rc" "$VENDOR_RAW" 2>/dev/null || true
 debugfs -w -R "write $PROJECT_ROOT/rootfs/noos_net.rc /etc/init/noos_net.rc" "$VENDOR_RAW"
 debugfs -w -R "ea_set -f $TMP_DIR/ea_cfg.bin /etc/init/noos_net.rc security.selinux" "$VENDOR_RAW"
 
+# Suppression du service allocator ranchu défaillant (conflit minigbm)
+debugfs -w -R "rm /etc/init/android.hardware.graphics.allocator-service.ranchu.rc" "$VENDOR_RAW" 2>/dev/null || true
+
 # 2. Patch de init.net.ranchu.sh pour invoquer noos_net.sh
 debugfs -R "dump /bin/init.net.ranchu.sh $TMP_DIR/init.net.ranchu.sh" "$VENDOR_RAW"
 if ! grep -q "noos_net.sh" "$TMP_DIR/init.net.ranchu.sh"; then
@@ -352,8 +355,31 @@ debugfs -w -R "rm /etc/fstab.ranchu" "$VENDOR_RAW"
 debugfs -w -R "write $TMP_DIR/fstab.ranchu /etc/fstab.ranchu" "$VENDOR_RAW"
 debugfs -w -R "ea_set -f $TMP_DIR/ea_cfg.bin /etc/fstab.ranchu security.selinux" "$VENDOR_RAW"
 
-# 6. Synchronisation vers extracted_vendor et iso_root
+# 6. Injection des dispositions de clavier AZERTY français (matériel & fallback)
+if [ -f "$PROJECT_ROOT/rootfs/azerty.kl" ]; then
+    printf "u:object_r:vendor_keylayout_file:s0\0" > "$TMP_DIR/ea_vkl.bin"
+    debugfs -w -R "rm /usr/keylayout/Vendor_0001_Product_0001.kl" "$VENDOR_RAW" 2>/dev/null || true
+    debugfs -w -R "write $PROJECT_ROOT/rootfs/azerty.kl /usr/keylayout/Vendor_0001_Product_0001.kl" "$VENDOR_RAW"
+    debugfs -w -R "ea_set -f $TMP_DIR/ea_vkl.bin /usr/keylayout/Vendor_0001_Product_0001.kl security.selinux" "$VENDOR_RAW"
+
+    debugfs -w -R "rm /usr/keylayout/AT_Translated_Set_2_keyboard.kl" "$VENDOR_RAW" 2>/dev/null || true
+    debugfs -w -R "write $PROJECT_ROOT/rootfs/azerty.kl /usr/keylayout/AT_Translated_Set_2_keyboard.kl" "$VENDOR_RAW"
+    debugfs -w -R "ea_set -f $TMP_DIR/ea_vkl.bin /usr/keylayout/AT_Translated_Set_2_keyboard.kl security.selinux" "$VENDOR_RAW"
+
+    debugfs -w -R "rm /usr/keylayout/Generic.kl" "$VENDOR_RAW" 2>/dev/null || true
+    debugfs -w -R "write $PROJECT_ROOT/rootfs/azerty.kl /usr/keylayout/Generic.kl" "$VENDOR_RAW"
+    debugfs -w -R "ea_set -f $TMP_DIR/ea_vkl.bin /usr/keylayout/Generic.kl security.selinux" "$VENDOR_RAW"
+fi
+
+if [ -f "$PROJECT_ROOT/rootfs/azerty_full.kcm" ]; then
+    printf "u:object_r:vendor_keychars_file:s0\0" > "$TMP_DIR/ea_vkcm.bin"
+    debugfs -w -R "rm /usr/keychars/Generic.kcm" "$VENDOR_RAW" 2>/dev/null || true
+    debugfs -w -R "write $PROJECT_ROOT/rootfs/azerty_full.kcm /usr/keychars/Generic.kcm" "$VENDOR_RAW"
+    debugfs -w -R "ea_set -f $TMP_DIR/ea_vkcm.bin /usr/keychars/Generic.kcm security.selinux" "$VENDOR_RAW"
+fi
+
+# 7. Synchronisation vers extracted_vendor et iso_root
 [ -d "$(dirname "$VENDOR_EXTRACTED")" ] && cp "$VENDOR_RAW" "$VENDOR_EXTRACTED"
 [ -d "$(dirname "$VENDOR_ISO")" ] && cp "$VENDOR_RAW" "$VENDOR_ISO"
 
-echo "✓ Fichiers matériel, réseau et modules injectés et labellisés avec succès dans les images vendor."
+echo "✓ Fichiers matériel, réseau, clavier AZERTY et modules injectés et labellisés avec succès dans les images vendor."
