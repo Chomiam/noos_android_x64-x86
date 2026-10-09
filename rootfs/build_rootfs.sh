@@ -115,6 +115,13 @@ if [ "$EDITION" = "tv" ]; then
         cp "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" "$BUILD_ROOT/system/priv-app/ProjectivyLauncher/ProjectivyLauncher.apk"
         echo "  -> Projectivy Launcher intégré dans /system/priv-app/ProjectivyLauncher"
     fi
+
+    # Intégration Aurora Store (Magasin d'applications alternatif FOSS pour Play Store)
+    if [ -f "$PROJECT_ROOT/editions/tv/prebuilts/AuroraStore.apk" ]; then
+        mkdir -p "$BUILD_ROOT/system/priv-app/AuroraStore"
+        cp "$PROJECT_ROOT/editions/tv/prebuilts/AuroraStore.apk" "$BUILD_ROOT/system/priv-app/AuroraStore/AuroraStore.apk"
+        echo "  -> Aurora Store intégré dans /system/priv-app/AuroraStore"
+    fi
 else
     echo "==> [RootFS] Application du profil Bureau (Desktop)..."
     cat "$PROJECT_ROOT/editions/desktop/desktop_config.prop" >> "$BUILD_ROOT/system/build.prop"
@@ -127,6 +134,13 @@ else
         mkdir -p "$BUILD_ROOT/system/priv-app/Taskbar"
         cp "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" "$BUILD_ROOT/system/priv-app/Taskbar/Taskbar.apk"
         echo "  -> Taskbar Desktop Launcher intégré dans /system/priv-app/Taskbar"
+    fi
+
+    # Intégration Aurora Store (Magasin d'applications alternatif FOSS pour Play Store)
+    if [ -f "$PROJECT_ROOT/editions/desktop/prebuilts/AuroraStore.apk" ]; then
+        mkdir -p "$BUILD_ROOT/system/priv-app/AuroraStore"
+        cp "$PROJECT_ROOT/editions/desktop/prebuilts/AuroraStore.apk" "$BUILD_ROOT/system/priv-app/AuroraStore/AuroraStore.apk"
+        echo "  -> Aurora Store intégré dans /system/priv-app/AuroraStore"
     fi
 fi
 

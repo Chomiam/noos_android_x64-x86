@@ -39,4 +39,8 @@ if [ -f "$PROJECTIVY_APK" ]; then
     echo "✓ Projectivy Launcher intégré avec succès ($(ls -lh "$PROJECTIVY_APK" | awk '{print $5}'))."
 fi
 
+AURORA_APK="$PROJECT_ROOT/editions/tv/prebuilts/AuroraStore.apk"
+[ -f "$AURORA_APK" ] || { echo "FAIL: AuroraStore.apk manquant dans $AURORA_APK" >&2; exit 1; }
+echo "✓ Aurora Store intégré avec succès ($(ls -lh "$AURORA_APK" | awk '{print $5}'))."
+
 echo "==> [Test TV] SUCCÈS : Tous les tests du profil TV ont réussi."

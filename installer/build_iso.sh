@@ -52,11 +52,12 @@ if [ -f "$PROJECT_ROOT/build_out/cache/android_17/extracted_vendor/vendor.img" ]
     cp "$PROJECT_ROOT/build_out/cache/android_17/extracted_vendor/vendor.img" "$ISO_DIR/vendor.img"
 fi
 
-# Copie des applications préinstallées Noos (TV & Desktop)
-echo "==> [ISO] Copie des applications Noos (ProjectivyLauncher, NoosTV, Taskbar)..."
+# Copie des applications préinstallées Noos (TV & Desktop & Store)
+echo "==> [ISO] Copie des applications Noos (ProjectivyLauncher, NoosTV, Taskbar, AuroraStore)..."
 [ -f "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" ] && cp "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" "$ISO_DIR/apps/"
 [ -f "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" ] && cp "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" "$ISO_DIR/apps/"
 [ -f "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" ] && cp "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" "$ISO_DIR/apps/"
+[ -f "$PROJECT_ROOT/editions/tv/prebuilts/AuroraStore.apk" ] && cp "$PROJECT_ROOT/editions/tv/prebuilts/AuroraStore.apk" "$ISO_DIR/apps/"
 
 # Copie de la configuration GRUB
 cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/boot/grub/grub.cfg"

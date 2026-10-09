@@ -33,4 +33,8 @@ if [ -f "$TASKBAR_APK" ]; then
     echo "✓ Taskbar Desktop Launcher présent ($(ls -lh "$TASKBAR_APK" | awk '{print $5}'))."
 fi
 
+AURORA_APK="$PROJECT_ROOT/editions/desktop/prebuilts/AuroraStore.apk"
+[ -f "$AURORA_APK" ] || { echo "FAIL: AuroraStore.apk manquant dans $AURORA_APK" >&2; exit 1; }
+echo "✓ Aurora Store intégré avec succès ($(ls -lh "$AURORA_APK" | awk '{print $5}'))."
+
 echo "==> [Test Bureau] SUCCÈS : Tous les tests du profil Bureau ont réussi."
