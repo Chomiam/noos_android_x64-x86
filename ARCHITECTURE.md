@@ -108,11 +108,69 @@ Le projet originel **Android-x86** (`android-x86.org`) s'est arrêté à Android
 
 ---
 
-## 7. Amélioration Continue & Tests Automatisés
+## 7. Architecture Graphique & Portage Android 17 (API 37 "Cinnamon Bun")
+
+Le portage d'Android 17 sur x86_64 en environnement bare-metal / virtualisé KVM repose sur une chaîne graphique sans régression :
+
+```
++-------------------------------------------------------------------------+
+|                  APPLICATIONS & HWUI (RenderThread)                     |
+|      Projectivy Launcher / Taskbar / SystemUI / Native Apps             |
++-------------------------------------------------------------------------+
+                                    |
+                                    v
++-------------------------------------------------------------------------+
+|                       SWIFTSHADER / ANGLE GLES                          |
+|   vulkan.pastel.so (Vulkan 1.3 CPU) <-> libEGL_angle.so                 |
++-------------------------------------------------------------------------+
+                                    |
+              (dlopen android.hardware.graphics.mapper@4.0-impl.so)
+                                    v
++-------------------------------------------------------------------------+
+|                    HIDL MAPPER 4.0 & MINIGBM ALLOCATOR                  |
+|   CrosGralloc4Mapper -> libminigbm_gralloc.so -> /dev/dri/card0         |
+|   - Magic buffer minigbm : 0x63623031 ("cb01")                         |
+|   - Passthrough manifest VINTF : android.hardware.graphics.mapper@4.0   |
++-------------------------------------------------------------------------+
+                                    |
+                           (GraphicBuffer / BLAST)
+                                    v
++-------------------------------------------------------------------------+
+|                          SURFACEFLINGER (SF)                            |
+|   usesClientComposition=true, framebuffers 1280x800                    |
++-------------------------------------------------------------------------+
+                                    |
+                       (AIDL Composer 3.0 / HWC3)
+                                    v
++-------------------------------------------------------------------------+
+|                        RANCHU HARDWARE COMPOSER                         |
+|   android.hardware.graphics.composer3-service.ranchu                   |
+|   Commit atomique DRM KMS sur plan primaire                            |
++-------------------------------------------------------------------------+
+                                    |
+                                    v
++-------------------------------------------------------------------------+
+|                     NOYAU LINUX 6.12 & VIRTIO-GPU                       |
+|   VirtIO-GPU DRM driver -> QEMU VirtIO VGA (Scanout actif 1280x800)     |
++-------------------------------------------------------------------------+
+```
+
+### Problème structurel résolu :
+1. **La cause de l'écran noir initial** : `vulkan.pastel.so` (SwiftShader) requiert le HAL `android.hardware.graphics.mapper@4.0` via `libhidlbase`. Faute d'une bibliothèque nommée selon la norme HIDL passthrough (`android.hardware.graphics.mapper@4.0-impl.so`) et déclarée dans le manifest VINTF vendor, SwiftShader basculait sur le module legacy `gralloc.default.so`.
+2. **Incompatibilité des structures de handles** : `gralloc.default.so` attendait un handle ashmem propriétaire AOSP (magic `0x3141592`), alors que l'allocateur actif `minigbm` générait des handles DMA-BUF DRM (magic `0x63623031`). Ce rejet entraînait `invalid gralloc handle` et faisait échouer la swapchain Vulkan (`QueueSignalReleaseImageANDROID failed: -1000001004`).
+3. **Résolution définitive** : 
+   - Injection de la bibliothèque `android.hardware.graphics.mapper@4.0-impl.so` dans `/vendor/lib64/hw/` encapsulant `CrosGralloc4Mapper`.
+   - Déclaration formelle du service passthrough dans `/vendor/etc/vintf/manifest/android.hardware.graphics.mapper@4.0.xml`.
+   - Les buffers graphiques sont directement négociés, SurfaceFlinger transmet le client target à HWC3, qui réalise le commit atomique DRM et active le scanout QEMU en 1280x800.
+
+---
+
+## 8. Amélioration Continue & Tests Automatisés
 
 Le dépôt inclut une suite de tests automatisés (`tests/run_tests.sh`) intégrée dans les workflows GitHub Actions :
-* Validation syntaxique et vérification de la complétude du defconfig Linux 6.6 LTS.
+* Validation syntaxique et vérification de la complétude du defconfig Linux 6.12 LTS.
 * Tests unitaires des profils TV et Bureau (propriétés, disposition des touches).
 * Vérification des permissions microG et Signature Spoofing.
 * Validation de la configuration Native Bridge ARM64.
-* Tests de démarrage virtuel headless sous **QEMU KVM** en modes UEFI et BIOS.
+* Tests de démarrage virtuel sous **QEMU KVM** avec validation par capture d'écran.
+

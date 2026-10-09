@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Génération de l'image ISO hybride UEFI/BIOS de Noos Android x86_64
+# Génération de l'image ISO hybride UEFI/BIOS de Noos Android 17 (API 37)
+# Version du noyau : Linux 6.12 LTS (ACK) - Architecture : x86_64
 # Compatible Mini PC (Intel N100 / AMD Ryzen APU / QEMU KVM Virt-Manager)
 # ==============================================================================
 set -euo pipefail
@@ -17,54 +18,51 @@ OUTPUT_ISO="$OUTPUT_DIR/$ISO_NAME"
 mkdir -p "$OUTPUT_DIR" "$ISO_DIR"
 rm -rf "${ISO_DIR:?}"/*
 
-echo "==> [ISO] Préparation de l'arborescence de l'ISO Noos Android..."
+echo "==> [ISO] Préparation de l'arborescence de l'ISO Noos Android 17..."
 
-# 1. Vérification des composants requis
+# 1. Vérification et préparation du noyau Linux 6.12 LTS
+mkdir -p "$PROJECT_ROOT/out/kernel"
+if [ -f "$PROJECT_ROOT/build_out/cache/android_17/extracted_vendor/kernel-ranchu" ]; then
+    cp "$PROJECT_ROOT/build_out/cache/android_17/extracted_vendor/kernel-ranchu" "$PROJECT_ROOT/out/kernel/kernel"
+    echo "✓ Noyau Linux 6.12 LTS synchronisé"
+fi
+
+# 2. Vérification de l'initrd
 if [ ! -f "$PROJECT_ROOT/out/boot/initrd.img" ]; then
     echo "[ISO] initrd.img manquant, génération en cours..."
     bash "$PROJECT_ROOT/initrd/build_initrd.sh"
 fi
 
-if [ ! -f "$PROJECT_ROOT/out/kernel/kernel" ]; then
-    echo "[ISO] kernel manquant, préparation en cours..."
-    bash "$PROJECT_ROOT/kernel/build_kernel.sh" fetch-prebuilt
-fi
-
-if [ ! -f "$PROJECT_ROOT/out/system/system_tv.sfs" ]; then
-    echo "[ISO] system_tv.sfs manquant, génération du profil TV..."
-    bash "$PROJECT_ROOT/rootfs/build_rootfs.sh" --edition tv
-fi
-
-if [ ! -f "$PROJECT_ROOT/out/system/system_desktop.sfs" ]; then
-    echo "[ISO] system_desktop.sfs manquant, génération du profil Bureau..."
-    bash "$PROJECT_ROOT/rootfs/build_rootfs.sh" --edition desktop
-fi
-
-# 2. Copie des fichiers système dans l'arborescence ISO
-mkdir -p "$ISO_DIR/boot/grub" "$ISO_DIR/EFI/BOOT"
+# 3. Copie des composants système dans l'arborescence ISO
+mkdir -p "$ISO_DIR/boot/grub" "$ISO_DIR/EFI/BOOT" "$ISO_DIR/apps"
 
 cp "$PROJECT_ROOT/out/kernel/kernel" "$ISO_DIR/kernel"
+cp "$PROJECT_ROOT/out/boot/initrd.img" "$ISO_DIR/initrd.img"
 
-if [ -f "$PROJECT_ROOT/build_out/cache/initrd.img" ]; then
-    cp "$PROJECT_ROOT/build_out/cache/initrd.img" "$ISO_DIR/initrd.img"
-else
-    cp "$PROJECT_ROOT/out/boot/initrd.img" "$ISO_DIR/initrd.img"
-fi
-
-if [ -f "$PROJECT_ROOT/build_out/cache/ramdisk.img" ]; then
-    cp "$PROJECT_ROOT/build_out/cache/ramdisk.img" "$ISO_DIR/ramdisk.img"
-fi
-
-if [ -f "$PROJECT_ROOT/out/system/system.sfs" ]; then
+# Copie des partitions Android 17
+if [ -f "$PROJECT_ROOT/build_out/cache/android_17/system.img" ]; then
+    echo "==> [ISO] Copie de Android 17 system.img..."
+    cp "$PROJECT_ROOT/build_out/cache/android_17/system.img" "$ISO_DIR/system.img"
+elif [ -f "$PROJECT_ROOT/out/system/system.sfs" ]; then
     cp "$PROJECT_ROOT/out/system/system.sfs" "$ISO_DIR/system.sfs"
-elif [ -f "$PROJECT_ROOT/build_out/cache/system.sfs" ]; then
-    cp "$PROJECT_ROOT/build_out/cache/system.sfs" "$ISO_DIR/system.sfs"
 fi
 
+if [ -f "$PROJECT_ROOT/build_out/cache/android_17/extracted_vendor/vendor.img" ]; then
+    echo "==> [ISO] Copie de Android 17 vendor.img..."
+    cp "$PROJECT_ROOT/build_out/cache/android_17/extracted_vendor/vendor.img" "$ISO_DIR/vendor.img"
+fi
+
+# Copie des applications préinstallées Noos (TV & Desktop)
+echo "==> [ISO] Copie des applications Noos (ProjectivyLauncher, NoosTV, Taskbar)..."
+[ -f "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" ] && cp "$PROJECT_ROOT/editions/tv/prebuilts/ProjectivyLauncher.apk" "$ISO_DIR/apps/"
+[ -f "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" ] && cp "$PROJECT_ROOT/editions/tv/prebuilts/NoosTV.apk" "$ISO_DIR/apps/"
+[ -f "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" ] && cp "$PROJECT_ROOT/editions/desktop/prebuilts/Taskbar.apk" "$ISO_DIR/apps/"
+
+# Copie de la configuration GRUB
 cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/boot/grub/grub.cfg"
 cp "$PROJECT_ROOT/installer/grub/grub.cfg" "$ISO_DIR/EFI/BOOT/grub.cfg"
 
-# 3. Création de la partition d'amorçage UEFI efi.img (FAT16 conforme UEFI)
+# 4. Création de la partition d'amorçage UEFI efi.img (FAT16 conforme UEFI)
 echo "==> [ISO] Création de la partition d'amorçage UEFI (efi.img)..."
 EFI_IMG="$ISO_DIR/boot/grub/efi.img"
 rm -f "$EFI_IMG"
@@ -78,18 +76,15 @@ mmd -i "$EFI_IMG" ::/boot/grub
 
 GRUB_EFI_SRC="$PROJECT_ROOT/tools/deb_root/usr/lib/grub/x86_64-efi/monolithic/grubx64.efi"
 if [ -f "$GRUB_EFI_SRC" ]; then
-    # Copie du binaire EFI
     mcopy -o -i "$EFI_IMG" "$GRUB_EFI_SRC" ::/EFI/BOOT/BOOTX64.EFI
     cp "$GRUB_EFI_SRC" "$ISO_DIR/EFI/BOOT/BOOTX64.EFI"
     cp "$GRUB_EFI_SRC" "$ISO_DIR/EFI/BOOT/bootx64.efi"
-
-    # Copie de la configuration GRUB dans le disque EFI
     mcopy -o -i "$EFI_IMG" "$PROJECT_ROOT/installer/grub/grub.cfg" ::/EFI/BOOT/grub.cfg
     mcopy -o -i "$EFI_IMG" "$PROJECT_ROOT/installer/grub/grub.cfg" ::/boot/grub/grub.cfg
 fi
 
-# 4. Assemblage final avec xorriso
-echo "==> [ISO] Création de l'ISO hybride avec xorriso..."
+# 5. Assemblage final avec xorriso
+echo "==> [ISO] Création de l'ISO hybride Noos Android 17 avec xorriso..."
 rm -f "$OUTPUT_ISO"
 xorriso -as mkisofs \
     -iso-level 3 \
@@ -101,11 +96,11 @@ xorriso -as mkisofs \
     -output "$OUTPUT_ISO" \
     "$ISO_DIR" 2>&1 | tail -n 15
 
-# Droits de lecture pour les démons système tels que libvirt
+# Droits de lecture pour libvirt / QEMU
 chmod 664 "$OUTPUT_ISO" 2>/dev/null || true
 chmod a+r "$OUTPUT_ISO" 2>/dev/null || true
 
-# 5. Calcul de l'empreinte SHA256
+# 6. Calcul de l'empreinte SHA256
 sha256sum "$OUTPUT_ISO" > "$OUTPUT_ISO.sha256"
 
 echo "✓ Image ISO hybride créée avec succès : $OUTPUT_ISO ($(ls -lh "$OUTPUT_ISO" | awk '{print $5}'))"
