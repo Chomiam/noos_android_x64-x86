@@ -28,3 +28,10 @@ ro.audio.ignore_effects=true
 
 # Veille TV adaptée (pas de mise en veille brutale pendant la lecture vidéo)
 svc.power.stayon=3
+
+# Paramètres régionaux par défaut : Français (France) & Europe/Paris
+persist.sys.locale=fr-FR
+persist.sys.language=fr
+persist.sys.country=FR
+persist.sys.timezone=Europe/Paris
+ro.product.locale=fr-FR
