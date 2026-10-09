@@ -1,0 +1,25 @@
+# ==============================================================================
+# noos_hw.rc — Service et triggers matériels Noos pour Android 17 x86_64
+# ==============================================================================
+
+service vendor.noos_hw /vendor/bin/noos_hw.sh
+    class early_hal
+    user root
+    group root
+    oneshot
+
+on post-fs
+    start vendor.noos_hw
+
+on early-boot
+    start vendor.noos_hw
+
+on post-fs-data
+    start gatekeeperd
+    start keystore2
+    trigger nonencrypted
+
+on property:vendor.noos.hardware.ready=1
+    start vendor.hwcomposer-3
+    start surfaceflinger
+    start ranchu-net

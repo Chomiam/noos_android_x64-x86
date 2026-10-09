@@ -86,6 +86,15 @@ cp "$SCRIPT_DIR/fstab.noos" "$BUILD_ROOT/system/etc/fstab.noos"
 cp "$SCRIPT_DIR/init.noos.rc" "$BUILD_ROOT/system/etc/init/init.noos.rc"
 cp "$SCRIPT_DIR/ueventd.noos.rc" "$BUILD_ROOT/ueventd.rc"
 
+# Configuration Matérielle & Réseau Noos (VirtIO-GPU / DRM / VirtIO-Net / Ethernet)
+cp "$SCRIPT_DIR/noos_hw.sh" "$BUILD_ROOT/system/bin/noos_hw.sh"
+chmod +x "$BUILD_ROOT/system/bin/noos_hw.sh"
+cp "$SCRIPT_DIR/noos_net.sh" "$BUILD_ROOT/system/bin/noos_net.sh"
+chmod +x "$BUILD_ROOT/system/bin/noos_net.sh"
+cp "$SCRIPT_DIR/noos_hw.rc" "$BUILD_ROOT/system/etc/init/noos_hw.rc"
+cp "$SCRIPT_DIR/noos_net.rc" "$BUILD_ROOT/system/etc/init/noos_net.rc"
+cp "$SCRIPT_DIR/android.hardware.ethernet.xml" "$BUILD_ROOT/system/etc/permissions/android.hardware.ethernet.xml"
+
 # 3. Intégration Native Bridge (Traduction ARM -> x86_64)
 cp "$PROJECT_ROOT/compatibility/native_bridge/enable_nativebridge.sh" "$BUILD_ROOT/system/bin/enable_nativebridge.sh"
 chmod +x "$BUILD_ROOT/system/bin/enable_nativebridge.sh"

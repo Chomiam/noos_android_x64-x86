@@ -1,0 +1,13 @@
+# ==============================================================================
+# noos_net.rc — Service Android Init pour la configuration réseau Noos
+# ==============================================================================
+
+service vendor.noos_net /vendor/bin/noos_net.sh
+    class late_start
+    user root
+    group root system inet
+    oneshot
+    disabled
+
+on property:sys.boot_completed=1
+    start vendor.noos_net

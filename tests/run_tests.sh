@@ -20,6 +20,7 @@ TEST_SUITES=(
     "Profil Noos Android Desktop Edition:$PROJECT_ROOT/tests/test_desktop_profile.sh"
     "Traduction ARM (Native Bridge):$PROJECT_ROOT/tests/test_arm_nativebridge.sh"
     "Services Google FOSS (microG):$PROJECT_ROOT/tests/test_microg_services.sh"
+    "Configuration Réseau (VirtIO & Ethernet):$PROJECT_ROOT/tests/test_network_config.sh"
     "Amorçage Virtuel BIOS QEMU KVM:$PROJECT_ROOT/tests/test_qemu_bios.sh"
     "Amorçage Virtuel UEFI QEMU KVM:$PROJECT_ROOT/tests/test_qemu_uefi.sh"
 )
